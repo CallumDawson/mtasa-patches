@@ -1,2 +1,2 @@
-# mtasa-patches
-Patches contributed by myself to Multi Theft Auto.
+# MTA:SA Patches
+Patches contributed by myself to [mtasa-blue](https://github.com/multitheftauto/mtasa-blue) and [mtasa-resources](https://github.com/multitheftauto/mtasa-resources), in C++ and Lua respectively. The patches predate 2015 and therefore were submitted to the original Subversion repositories on Google Code ([mtasa-blue](https://code.google.com/archive/p/mtasa-blue/) / [mtasa-resources](https://code.google.com/archive/p/mtasa-resources/)).
