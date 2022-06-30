@@ -1,0 +1,25 @@
+Index: required/freeroam/util_server.lua
+===================================================================
+--- required/freeroam/util_server.lua	(revision 649)
++++ required/freeroam/util_server.lua	(revision 650)
+@@ -5,7 +5,7 @@
+ 
+ local _isPedDead = isPedDead
+ function isPedDead(player)
+-	return _isPedDead(player) or isPedTerminated(player)
++	if isElement(player) then return _isPedDead(player) or isPedTerminated(player) else return false end
+ end
+ 
+ function isPedTerminated(player)
+Index: required/play/broph.lua
+===================================================================
+--- required/play/broph.lua	(revision 649)
++++ required/play/broph.lua	(revision 650)
+@@ -7,6 +7,7 @@
+ )
+ 
+ function spawn(player)
++	if not isElement(player) then return end
+ 	repeat until spawnPlayer ( player, -711+math.random(1,5), 957+math.random(5,9), 12.4, 90, math.random(9,288) )
+ 	fadeCamera(player, true)
+ 	setCameraTarget(player, player)

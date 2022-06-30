@@ -1,0 +1,41 @@
+Index: [gamemodes]/[ctv]/ctv/_triggerqueue.lua
+===================================================================
+--- [gamemodes]/[ctv]/ctv/_triggerqueue.lua	(revision 857)
++++ [gamemodes]/[ctv]/ctv/_triggerqueue.lua	(revision 858)
+@@ -39,7 +39,9 @@
+ 			args[i] = table.deepcopy(a)
+ 		end
+ 	end
+-	table.insert(playerData[player].pending, { name = name, source = source, args = args })
++	if playerData[player] and playerData[player].pending then
++		table.insert(playerData[player].pending, { name = name, source = source, args = args })
++	end
+ end
+ 
+ 
+Index: [gamemodes]/[stealth]/stealth/stealthmain_server.lua
+===================================================================
+--- [gamemodes]/[stealth]/stealth/stealthmain_server.lua	(revision 857)
++++ [gamemodes]/[stealth]/stealth/stealthmain_server.lua	(revision 858)
+@@ -121,7 +121,7 @@
+ 	bindKey ( source, "F3", "down", selectTeamKey )
+ 	thisplayer = source
+ 	setCameraFixed(source,"cameramode",getRootElement(), thisplayer)
+-	destroyshield = setTimer ( destroyElement, 3000, 1, dummyshield )
++	destroyshield = setTimer ( function (shield) if isElement ( shield ) then destroyElement ( shield ) end end, 3000, 1, dummyshield )
+ 	setCameraFixed(source,"cameramode",getRootElement(), thisplayer)
+ 	triggerClientEvent(source,"swaptoggle",getRootElement(), thisplayer, teamswap)
+ 	textDisplayAddObserver ( waitDisplay, thisplayer )
+@@ -514,8 +514,10 @@
+ 				outputSpectateMessage("Nobody to Spectate",source) -- IF ITS JUST THE 1 PLAYER, SPECTATING IS IMPOSSIBLE
+ 			else
+ 				specPlayer = specPlayer+1
+-				while isPedDead ( playersTable[specPlayer] ) do
+-					specPlayer = specPlayer+1
++				if isElement ( playersTable[specPlayer] ) then
++					while isPedDead ( playersTable[specPlayer] ) do
++						specPlayer = specPlayer+1
++					end
+ 				end
+ 				if specPlayer > playerCount then
+ 					specPlayer = 1

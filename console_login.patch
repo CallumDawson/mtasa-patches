@@ -1,0 +1,36 @@
+Index: mods/deathmatch/logic/CAccountManager.cpp
+===================================================================
+--- mods/deathmatch/logic/CAccountManager.cpp	(revision 2741)
++++ mods/deathmatch/logic/CAccountManager.cpp	(working copy)
+@@ -583,12 +583,27 @@
+         if ( pEchoClient ) pEchoClient->SendEcho ( SString( "login: Account for '%s' is already in use", szNick ).c_str() );
+         return false;
+     }
++
+     if ( strlen ( szPassword ) <= MIN_PASSWORD_LENGTH || strlen ( szPassword ) > MAX_PASSWORD_LENGTH || !pAccount->IsPassword ( szPassword ) )
+     {
+-        if ( pEchoClient ) pEchoClient->SendEcho ( SString( "login: Invalid password for account '%s'", szNick ).c_str() );
+-        CLogger::AuthPrintf ( "LOGIN: %s tried to log in as '%s' with an invalid password (IP: %s  Serial: %s)\n", strPlayerName.c_str (), szNick, strPlayerIP.c_str (), strPlayerSerial.c_str () );
+-        m_AccountProtect.AddConnect ( strPlayerIP.c_str () );
+-        return false;
++		// Allow the console to use 'login Console'
++		if(pClient->GetClientType() != CClient::CLIENT_CONSOLE)
++		{
++			CLogger::AuthPrintf("They're not a Console !!");
++			if ( pEchoClient ) pEchoClient->SendEcho ( SString( "login: Invalid password for account '%s'", szNick ).c_str() );
++			CLogger::AuthPrintf ( "LOGIN: %s tried to log in as '%s' with an invalid password (IP: %s  Serial: %s)\n", strPlayerName.c_str (), szNick, strPlayerIP.c_str (), strPlayerSerial.c_str () );
++			m_AccountProtect.AddConnect ( strPlayerIP.c_str () );
++	        return false;
++		}
++		else
++		{
++			// Check for invalid credentials (if not 'Console')
++			if ( pAccount->GetName() != "Console" && !pAccount->IsPassword(szPassword) )
++			{
++				CLogger::AuthPrintf ( "LOGIN: Console tried to log in as '%s' with an invalid password.\n", szNick );
++				return false;
++			}
++		}
+     }
+ 
+     // Try to log him in

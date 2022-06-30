@@ -1,0 +1,88 @@
+Index: MTA10/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp
+===================================================================
+--- MTA10/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp	(revision 3382)
++++ MTA10/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp	(revision 3383)
+@@ -1559,6 +1559,12 @@
+     return true;
+ }
+ 
++bool CStaticFunctionDefinitions::IsPedDead ( CClientPed & Ped, bool & bDead )
++{
++    bDead = Ped.IsDead ();
++    return true;
++}
++
+ bool CStaticFunctionDefinitions::IsPedInVehicle ( CClientPed & Ped, bool & bInVehicle )
+ {
+     bInVehicle = ( Ped.GetRealOccupiedVehicle () != NULL );
+Index: MTA10/mods/deathmatch/logic/CStaticFunctionDefinitions.h
+===================================================================
+--- MTA10/mods/deathmatch/logic/CStaticFunctionDefinitions.h	(revision 3382)
++++ MTA10/mods/deathmatch/logic/CStaticFunctionDefinitions.h	(revision 3383)
+@@ -142,6 +142,7 @@
+     static bool                         GetPedWeaponMuzzlePosition          ( CClientPed& Ped, CVector& vecPosition );
+     static bool                         IsPedOnFire                         ( CClientPed& Ped, bool & bOnFire );
+     static bool                         IsPedInVehicle                      ( CClientPed& Ped, bool & bInVehicle );
++    static bool                         IsPedDead                         ( CClientPed& Ped, bool & bDead );
+ 
+     static bool                         SetPedWeaponSlot                    ( CClientEntity& Entity, int iSlot );
+     static bool                         SetPedRotation                      ( CClientEntity& Entity, float fRotation );
+Index: MTA10/mods/shared_logic/lua/CLuaManager.cpp
+===================================================================
+--- MTA10/mods/shared_logic/lua/CLuaManager.cpp	(revision 3382)
++++ MTA10/mods/shared_logic/lua/CLuaManager.cpp	(revision 3383)
+@@ -435,6 +435,7 @@
+     CLuaCFunctions::AddFunction ( "isPedFrozen", CLuaFunctionDefs::IsPedFrozen );
+     CLuaCFunctions::AddFunction ( "isPedFootBloodEnabled", CLuaFunctionDefs::IsPedFootBloodEnabled );
+     CLuaCFunctions::AddFunction ( "getPedCameraRotation", CLuaFunctionDefs::GetPedCameraRotation );
++    CLuaCFunctions::AddFunction ( "isPedDead", CLuaFunctionDefs::IsPedDead );
+ 
+     CLuaCFunctions::AddFunction ( "setPedWeaponSlot", CLuaFunctionDefs::SetPedWeaponSlot );
+     CLuaCFunctions::AddFunction ( "setPedRotation", CLuaFunctionDefs::SetPedRotation );
+Index: MTA10/mods/shared_logic/lua/CLuaFunctionDefs.h
+===================================================================
+--- MTA10/mods/shared_logic/lua/CLuaFunctionDefs.h	(revision 3382)
++++ MTA10/mods/shared_logic/lua/CLuaFunctionDefs.h	(revision 3383)
+@@ -230,6 +230,7 @@
+     LUA_DECLARE ( IsPedFootBloodEnabled );
+     LUA_DECLARE ( GetPedCameraRotation );
+     LUA_DECLARE ( IsPedOnFire );
++    LUA_DECLARE ( IsPedDead );
+ 
+     LUA_DECLARE ( SetPedRotation );
+     LUA_DECLARE ( SetPedCanBeKnockedOffBike );
+Index: MTA10/mods/shared_logic/lua/CLuaFunctionDefs.Ped.cpp
+===================================================================
+--- MTA10/mods/shared_logic/lua/CLuaFunctionDefs.Ped.cpp	(revision 3382)
++++ MTA10/mods/shared_logic/lua/CLuaFunctionDefs.Ped.cpp	(revision 3383)
+@@ -1159,6 +1159,30 @@
+     return 1;
+ }
+ 
++int CLuaFunctionDefs::IsPedDead ( lua_State* luaVM )
++{
++    if ( ( lua_type ( luaVM, 1 ) == LUA_TLIGHTUSERDATA ) )
++    {
++        CClientPed * pPed = lua_toped ( luaVM, 1 );
++        if ( pPed )
++        {
++            bool bDead;
++			if ( CStaticFunctionDefinitions::IsPedDead ( *pPed, bDead ) )
++            {
++                lua_pushboolean ( luaVM, bDead );
++                return 1;
++            }
++        }
++        else
++            m_pScriptDebugging->LogBadPointer ( luaVM, "isPedDead", "ped", 1 );
++    }
++    else
++        m_pScriptDebugging->LogBadType ( luaVM, "isPedDead" );
++
++    lua_pushboolean ( luaVM, false );
++    return 1;
++}
++
+ int CLuaFunctionDefs::SetPedOnFire ( lua_State* luaVM )
+ {
+     if ( ( lua_type ( luaVM, 1 ) == LUA_TLIGHTUSERDATA ) )

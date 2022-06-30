@@ -1,0 +1,25 @@
+Index: MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp
+===================================================================
+--- MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp	(revision 2771)
++++ MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp	(revision 2772)
+@@ -1302,6 +1302,20 @@
+         }
+     }
+ 
++    if ( pElement->GetType () == CElement::VEHICLE )
++    {
++        CVehicle* pVehicle = static_cast < CVehicle* > ( pElement );
++        CPed* pOccupant;
++        // Loop all seats of the vehicle
++        for ( unsigned int i = 0 ; i < MAX_VEHICLE_SEATS ; i++ )
++        {
++            pOccupant = GetVehicleOccupant ( pVehicle, i );
++            if ( pOccupant )
++                // If the seat is occupied, set the occupants dimension
++                SetElementDimension ( pOccupant, usDimension );
++        }
++    }
++
+     switch ( pElement->GetType () )
+     {
+         case CElement::PED:

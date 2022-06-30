@@ -1,0 +1,20 @@
+Index: [editor]/editor_gui/client/save.lua
+===================================================================
+--- [editor]/editor_gui/client/save.lua	(revision 855)
++++ [editor]/editor_gui/client/save.lua	(revision 856)
+@@ -26,6 +26,15 @@
+ 				saveMap()
+ 			end
+ 		end, false )
++	addEventHandler ( "onClientGUIChanged", saveDialog.mapName,
++		function ()
++			local name = guiGetText(source)
++			local correctFormat = string.gsub(name, " ", "-") -- Turn spaces into dashes
++			local correctFormat = string.gsub(correctFormat, "[^%w-_{}]", "") -- Then remove bad charachters
++			if name ~= correctFormat then
++				guiSetText(source, correctFormat)
++			end
++		end, false )
+ end
+ 
+ function closeSaveDialog()

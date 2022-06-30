@@ -1,0 +1,42 @@
+Index: MTA10/core/CCommandFuncs.h
+===================================================================
+--- MTA10/core/CCommandFuncs.h	(revision 3384)
++++ MTA10/core/CCommandFuncs.h	(revision 3385)
+@@ -40,6 +40,7 @@
+     DECLARE_COMMAND_HANDLER ( Bind );
+     DECLARE_COMMAND_HANDLER ( Unbind );
+     DECLARE_COMMAND_HANDLER ( Binds );
++    DECLARE_COMMAND_HANDLER ( Serial );
+     DECLARE_COMMAND_HANDLER ( CopyGTAControls );
+     DECLARE_COMMAND_HANDLER ( HUD );
+     DECLARE_COMMAND_HANDLER ( ScreenShot );
+Index: MTA10/core/CCommandFuncs.cpp
+===================================================================
+--- MTA10/core/CCommandFuncs.cpp	(revision 3384)
++++ MTA10/core/CCommandFuncs.cpp	(revision 3385)
+@@ -441,3 +441,13 @@
+     CCore::GetSingleton ().GetNetwork ()->ResetStub ( 'test', szParameters, szBuffer );
+     CCore::GetSingleton ().GetConsole ()->Print ( szBuffer );
+ }
++
++void CCommandFuncs::Serial ( const char* szParameters )
++{
++    // Get our serial
++    char szSerial [ 64 ];
++    g_pCore->GetNetwork ()->GetSerial (szSerial, sizeof ( szSerial ));
++
++    // Print it
++    CCore::GetSingleton ().GetConsole ()->Printf ( "* Your serial is: %s", szSerial );
++}
+Index: MTA10/core/CCore.cpp
+===================================================================
+--- MTA10/core/CCore.cpp	(revision 3384)
++++ MTA10/core/CCore.cpp	(revision 3385)
+@@ -1207,6 +1207,7 @@
+     m_pCommands->Add ( "time",              "shows the time",                   CCommandFuncs::Time );
+     m_pCommands->Add ( "showhud",           "shows the hud",                    CCommandFuncs::HUD );
+     m_pCommands->Add ( "binds",             "shows all the binds",              CCommandFuncs::Binds );
++    m_pCommands->Add ( "serial",            "shows your serial",                CCommandFuncs::Serial );
+ 
+ #if 0
+     m_pCommands->Add ( "vid",               "changes the video settings (id)",  CCommandFuncs::Vid );

@@ -1,0 +1,46 @@
+Index: MTA10/core/CCommandFuncs.cpp
+===================================================================
+--- MTA10/core/CCommandFuncs.cpp	(revision 7087)
++++ MTA10/core/CCommandFuncs.cpp	(working copy)
+@@ -470,7 +470,17 @@
+     CCore::GetSingleton ().GetConsole ()->Printf ( _("* Your serial is: %s"), szSerial );
+ }
+ 
++void CCommandFuncs::ClearChat ( const char* szParameters )
++{
++    // Get the chatbox line count
++    int lineCount;
++    g_pCore->GetCVars()->Get ( "chat_lines", lineCount );
+ 
++    // Write a blank string on each line
++    for ( int i = 1; i <= lineCount; i++ )
++        g_pCore->ChatPrintf ( "", false );
++}
++
+ void CCommandFuncs::FakeLag ( const char *szCmdLine )
+ {
+ #if defined(MTA_DEBUG) || defined(MTA_BETA)
+Index: MTA10/core/CCommandFuncs.h
+===================================================================
+--- MTA10/core/CCommandFuncs.h	(revision 7087)
++++ MTA10/core/CCommandFuncs.h	(working copy)
+@@ -41,6 +41,7 @@
+     DECLARE_COMMAND_HANDLER ( Unbind );
+     DECLARE_COMMAND_HANDLER ( Binds );
+     DECLARE_COMMAND_HANDLER ( Serial );
++    DECLARE_COMMAND_HANDLER ( ClearChat );
+     DECLARE_COMMAND_HANDLER ( CopyGTAControls );
+     DECLARE_COMMAND_HANDLER ( HUD );
+     DECLARE_COMMAND_HANDLER ( ScreenShot );
+Index: MTA10/core/CCore.cpp
+===================================================================
+--- MTA10/core/CCore.cpp	(revision 7087)
++++ MTA10/core/CCore.cpp	(working copy)
+@@ -1394,6 +1394,7 @@
+     m_pCommands->Add ( "showhud",           _("shows the hud"),                    CCommandFuncs::HUD );
+     m_pCommands->Add ( "binds",             _("shows all the binds"),              CCommandFuncs::Binds );
+     m_pCommands->Add ( "serial",            _("shows your serial"),                CCommandFuncs::Serial );
++    m_pCommands->Add ( "clearchat",         _("clears the chatbox"),               CCommandFuncs::ClearChat );
+ 
+ #if 0
+     m_pCommands->Add ( "vid",               "changes the video settings (id)",  CCommandFuncs::Vid );

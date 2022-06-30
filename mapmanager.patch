@@ -1,0 +1,69 @@
+Index: mapmanager_main.lua
+===================================================================
+--- mapmanager_main.lua	(revision 689)
++++ mapmanager_main.lua	(working copy)
+@@ -2,6 +2,7 @@
+ currentGamemodeMap = nil
+ nextGamemode = nil
+ nextGamemodeMap = nil
++version = getVersion().mta
+ 
+ setGameType(false)
+ setMapName("None")
+@@ -169,8 +170,16 @@
+ 	if mapName then
+ 		map = getMapFromName(mapName)
+ 		if not isMap(map) then
+-			outputMapManager("'"..mapName.."' is not a valid map.",source)
+-			return false
++			if string.find(version,"1.0") then
++				outputMapManager("'"..mapName.."' does not appear to exist. You may need to refresh your resources.",source)
++				return false
++			elseif string.find(version,"1.1") then
++				refreshResources()
++				if not isMap(map) then
++					outputMapManager("'"..mapName.."' is not a valid map.",source)
++					return false
++				end
++			end
+ 		end
+ 	else
+ 		outputMapManager("Usage: /"..command.." map",source)
+@@ -198,8 +207,16 @@
+ 	if gamemodeName then
+ 		gamemode = getResourceFromName(gamemodeName)
+ 		if not isGamemode(gamemode) then
+-			outputMapManager("'"..gamemodeName.."' is not a valid gamemode.",source)
+-			return false
++			if string.find(version,"1.0") then
++				outputMapManager("'"..gamemodeName.."' does not appear to exist. You may need to refresh your resources.",source)
++				return false
++			elseif string.find(version,"1.1") then
++				refreshResources()
++				if not isGamemode(gamemode) then
++					outputMapManager("'"..gamemodeName.."' is not a valid gamemode.",source)
++					return false
++				end
++			end
+ 		end
+ 	else
+ 		outputMapManager("Usage: /"..command.." gamemode [map]",source)
+@@ -210,8 +227,16 @@
+ 	if mapName then
+ 		map = getMapFromName(mapName)
+ 		if not isMap(map) then
+-			outputMapManager("'"..mapName.."' is not a valid map.",source)
+-			return false
++			if string.find(version,"1.0") then
++				outputMapManager("'"..mapName.."' does not appear to exist. You may need to refresh your resources.",source)
++				return false
++			elseif string.find(version,"1.1") then
++				refreshResources()
++				if not isMap(map) then
++					outputMapManager("'"..mapName.."' is not a valid map.",source)
++					return false
++				end
++			end
+ 		end
+ 	end
+ 	setInstigator( source )

@@ -1,0 +1,124 @@
+Index: MTA10_Server/mods/deathmatch/acl.xml
+===================================================================
+--- MTA10_Server/mods/deathmatch/acl.xml	(revision 7088)
++++ MTA10_Server/mods/deathmatch/acl.xml	(working copy)
+@@ -90,6 +90,7 @@
+       <right name="function.setUnbanTime" access="false"/>
+       <right name="function.setBanAdmin" access="false"/>
+       <right name="function.setBanReason" access="false"/>
++      <right name="function.setBanNick" access="false"/>
+       <right name="function.removeBan" access="false"/>
+       <right name="function.removeAccount" access="false"/>
+       <right name="function.setAccountPassword" access="false"/>
+@@ -193,6 +194,7 @@
+       <right name="function.setUnbanTime" access="true"/>
+       <right name="function.setBanAdmin" access="true"/>
+       <right name="function.setBanReason" access="true"/>
++      <right name="function.setBanNick" access="true"/>
+       <right name="function.removeBan" access="true"/>
+       <right name="function.reloadBans" access="true"/>
+       <right name="function.executeCommandHandler" access="true"/>
+Index: MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp
+===================================================================
+--- MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp	(revision 7088)
++++ MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp	(working copy)
+@@ -11646,6 +11646,16 @@
+     return true;
+ }
+ 
++bool CStaticFunctionDefinitions::SetBanNick ( CBan* pBan, const SString& strNick )
++{
++    if ( strNick.length () > MAX_PLAYER_NICK_LENGTH )
++        pBan->SetNick ( strNick.substr( 0, MAX_PLAYER_NICK_LENGTH - 3 ) + "..." );
++    else
++        pBan->SetNick ( strNick );
++
++    return true;
++}
++
+ bool CStaticFunctionDefinitions::IsCursorShowing ( CPlayer* pPlayer, bool& bShowing )
+ {
+     assert ( pPlayer );
+Index: MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.h
+===================================================================
+--- MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.h	(revision 7088)
++++ MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.h	(working copy)
+@@ -682,6 +682,7 @@
+     static bool                 SetUnbanTime                        ( CBan* pBan, time_t time);
+     static bool                 SetBanReason                        ( CBan* pBan, const SString& strReason );
+     static bool                 SetBanAdmin                         ( CBan* pBan, const SString& strAdminName );
++    static bool                 SetBanNick                          ( CBan* pBan, const SString& strNick );
+ 
+     // Cursor get funcs
+     static bool                 IsCursorShowing                     ( CPlayer* pPlayer, bool& bShowing );
+Index: MTA10_Server/mods/deathmatch/logic/lua/CLuaFunctionDefs.Ban.cpp
+===================================================================
+--- MTA10_Server/mods/deathmatch/logic/lua/CLuaFunctionDefs.Ban.cpp	(revision 7088)
++++ MTA10_Server/mods/deathmatch/logic/lua/CLuaFunctionDefs.Ban.cpp	(working copy)
+@@ -404,6 +404,30 @@
+     return 1;
+ }
+ 
++int CLuaFunctionDefs::SetBanNick ( lua_State* luaVM )
++{
++    CBan* pBan;
++    SString strNick;
++
++    CScriptArgReader argStream ( luaVM );
++    argStream.ReadUserData ( pBan );
++    argStream.ReadString ( strNick );
++
++    if ( !argStream.HasErrors () )
++    {
++        if ( CStaticFunctionDefinitions::SetBanNick ( pBan, strNick ) )
++        {
++            lua_pushboolean ( luaVM, true );
++            return 1;
++        }
++    }
++    else
++        m_pScriptDebugging->LogCustom ( luaVM, argStream.GetFullErrorMessage () );
++
++    lua_pushboolean ( luaVM, false );
++    return 1;
++}
++
+ int CLuaFunctionDefs::IsBan ( lua_State* luaVM )
+ {
+     CBan* pBan;
+Index: MTA10_Server/mods/deathmatch/logic/lua/CLuaFunctionDefs.h
+===================================================================
+--- MTA10_Server/mods/deathmatch/logic/lua/CLuaFunctionDefs.h	(revision 7088)
++++ MTA10_Server/mods/deathmatch/logic/lua/CLuaFunctionDefs.h	(working copy)
+@@ -566,6 +566,7 @@
+     LUA_DECLARE ( SetUnbanTime );
+     LUA_DECLARE ( SetBanReason );
+     LUA_DECLARE ( SetBanAdmin );
++    LUA_DECLARE ( SetBanNick );
+     LUA_DECLARE ( IsBan );
+ 
+     // Cursor get funcs
+Index: MTA10_Server/mods/deathmatch/logic/lua/CLuaMain.cpp
+===================================================================
+--- MTA10_Server/mods/deathmatch/logic/lua/CLuaMain.cpp	(revision 7088)
++++ MTA10_Server/mods/deathmatch/logic/lua/CLuaMain.cpp	(working copy)
+@@ -558,6 +558,7 @@
+     lua_classvariable ( luaVM, "time", NULL, "getBanTime" );
+     lua_classvariable ( luaVM, "unbanTime", NULL, "getUnbanTime" );
+     lua_classvariable ( luaVM, "reason", "setBanReason", "getBanReason" );
++    lua_classvariable ( luaVM, "nick", "setBanNick", "getBanNick" );
+     
+     lua_registerclass ( luaVM, "Ban" );
+ }
+Index: MTA10_Server/mods/deathmatch/logic/lua/CLuaManager.cpp
+===================================================================
+--- MTA10_Server/mods/deathmatch/logic/lua/CLuaManager.cpp	(revision 7088)
++++ MTA10_Server/mods/deathmatch/logic/lua/CLuaManager.cpp	(working copy)
+@@ -687,6 +687,7 @@
+     CLuaCFunctions::AddFunction ( "setUnbanTime", CLuaFunctionDefs::SetUnbanTime );
+     CLuaCFunctions::AddFunction ( "setBanReason", CLuaFunctionDefs::SetBanReason );
+     CLuaCFunctions::AddFunction ( "setBanAdmin", CLuaFunctionDefs::SetBanAdmin );
++    CLuaCFunctions::AddFunction ( "setBanNick", CLuaFunctionDefs::SetBanNick );
+     CLuaCFunctions::AddFunction ( "isBan", CLuaFunctionDefs::IsBan );
+ 
+     /*

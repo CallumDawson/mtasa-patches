@@ -1,0 +1,13 @@
+Index: [admin]/admin/server/admin_server.lua
+===================================================================
+--- [admin]/admin/server/admin_server.lua	(revision 786)
++++ [admin]/admin/server/admin_server.lua	(revision 787)
+@@ -1206,7 +1206,7 @@
+ 			end
+ 			mdata = data..":"..data2
+ 		elseif ( action == "setpassword" ) then
+-			if ( data == "" ) then
++			if ( not data or data == "" ) then
+ 				setServerPassword ( nil )
+ 				action = "resetpassword"
+ 			elseif ( string.len ( data ) > 32 ) then

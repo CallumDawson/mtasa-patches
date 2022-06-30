@@ -1,0 +1,64 @@
+Index: MTA10/mods/shared_logic/CClientPed.cpp
+===================================================================
+--- MTA10/mods/shared_logic/CClientPed.cpp	(revision 4392)
++++ MTA10/mods/shared_logic/CClientPed.cpp	(revision 4393)
+@@ -200,6 +200,9 @@
+     //These two are inactive for now
+     m_MovementStateNames[MOVEMENTSTATE_CRAWL]       =    "crawl";
+     m_MovementStateNames[MOVEMENTSTATE_ROLL]        =    "roll";
++    m_MovementStateNames[MOVEMENTSTATE_JUMP]        =    "jump";
++    m_MovementStateNames[MOVEMENTSTATE_FALL]        =    "fall";
++    m_MovementStateNames[MOVEMENTSTATE_CLIMB]       =    "climb";
+ 
+     // Create the player model
+     if ( m_bIsLocalPlayer )
+@@ -2050,6 +2053,22 @@
+         CControllerState cs;
+         GetControllerState ( cs );
+ 
++        // Get his current task(s)
++        const char* szComplexTaskName = GetTaskManager()->GetActiveTask()->GetTaskName();
++        const char* szSimpleTaskName = GetTaskManager()->GetSimplestActiveTask()->GetTaskName();
++
++        // Is he climbing?
++        if ( strcmp ( szSimpleTaskName, "TASK_SIMPLE_CLIMB" ) == 0 )
++            return MOVEMENTSTATE_CLIMB;
++
++        // Is he jumping?
++        else if ( strcmp ( szComplexTaskName, "TASK_COMPLEX_JUMP" ) == 0 )
++            return MOVEMENTSTATE_JUMP;
++
++        // Is he falling?
++        else if ( !IsOnGround() )
++            return MOVEMENTSTATE_FALL;
++
+         // Grab his controller state
+         bool bWalkKey = false;
+         if ( GetType () == CCLIENTPLAYER )
+@@ -2081,6 +2100,8 @@
+             // Is he moving the contoller at all?
+             if ( cs.LeftStickX == 0 && cs.LeftStickY == 0 )
+                 return MOVEMENTSTATE_CROUCH;
++            else
++                return MOVEMENTSTATE_CRAWL;
+         }
+     }
+     return MOVEMENTSTATE_UNKNOWN;
+Index: MTA10/mods/shared_logic/CClientPed.h
+===================================================================
+--- MTA10/mods/shared_logic/CClientPed.h	(revision 4392)
++++ MTA10/mods/shared_logic/CClientPed.h	(revision 4393)
+@@ -72,9 +72,11 @@
+     MOVEMENTSTATE_JOG, //Jogging
+     MOVEMENTSTATE_SPRINT, //Sprinting
+     MOVEMENTSTATE_CROUCH, //Crouching still
+-    // Duds for now.  We should add methods to detect these
+     MOVEMENTSTATE_CRAWL, //Crouch-moving
+-    MOVEMENTSTATE_ROLL, //Crouch-rolling
++    MOVEMENTSTATE_ROLL, //Crouch-rolling (Needs adding)
++    MOVEMENTSTATE_JUMP, // Jumping
++    MOVEMENTSTATE_FALL, // Falling
++    MOVEMENTSTATE_CLIMB // Climbing
+ };
+ 
+ enum eDeathAnims

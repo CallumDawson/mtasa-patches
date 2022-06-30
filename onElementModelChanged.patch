@@ -1,0 +1,55 @@
+Index: MTA10_Server/mods/deathmatch/logic/CGame.cpp
+===================================================================
+--- MTA10_Server/mods/deathmatch/logic/CGame.cpp	(revision 3385)
++++ MTA10_Server/mods/deathmatch/logic/CGame.cpp	(revision 3386)
+@@ -1329,6 +1329,7 @@
+     m_Events.AddEvent ( "onElementDestroy", "", NULL, false );
+     m_Events.AddEvent ( "onElementStartSync", "newSyncer", NULL, false );
+     m_Events.AddEvent ( "onElementStopSync", "oldSyncer", NULL, false );
++    m_Events.AddEvent ( "onElementModelChange", "oldModel, newModel", NULL, false );
+ 
+     // Radar area events
+ 
+Index: MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp
+===================================================================
+--- MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp	(revision 3385)
++++ MTA10_Server/mods/deathmatch/logic/CStaticFunctionDefinitions.cpp	(revision 3386)
+@@ -1541,7 +1541,11 @@
+             CPed * pPed = static_cast < CPed* > ( pElement );
+             if ( pPed->GetModel () == usModel ) return false;
+             if ( !CPlayerManager::IsValidPlayerModel ( usModel ) ) return false;
+-            pPed->SetModel ( usModel );
++            CLuaArguments Arguments;
++            Arguments.PushNumber ( pPed->GetModel() ); // Get the old model
++            pPed->SetModel ( usModel ); // Set the new model
++            Arguments.PushNumber ( usModel ); // Get the new model
++            pPed->CallEvent ( "onElementModelChange", Arguments, false );
+             break;
+         }
+         case CElement::VEHICLE:
+@@ -1549,7 +1553,11 @@
+             CVehicle* pVehicle = static_cast < CVehicle* > ( pElement );
+             if ( pVehicle->GetModel () == usModel ) return false;
+             if ( !CVehicleManager::IsValidModel ( usModel ) ) return false;
+-            pVehicle->SetModel ( usModel );
++            CLuaArguments Arguments;
++            Arguments.PushNumber ( pVehicle->GetModel () ); // Get the old model
++            pVehicle->SetModel ( usModel ); // Set the new model
++            Arguments.PushNumber ( usModel ); // Get the new model
++            pVehicle->CallEvent ( "onElementModelChange", Arguments, false );
+ 
+             // Check for any passengers above the max seat list
+             unsigned char ucMaxPassengers = pVehicle->GetMaxPassengers ();
+@@ -1574,7 +1582,11 @@
+             CObject * pObject = static_cast < CObject* > ( pElement );
+             if ( pObject->GetModel () == usModel ) return false;
+             if ( !CObjectManager::IsValidModel ( usModel ) ) return false;
+-            pObject->SetModel ( usModel );
++			CLuaArguments Arguments;
++            Arguments.PushNumber ( pObject->GetModel () ); // Get the old model
++            pObject->SetModel ( usModel ); // Set the new model
++            Arguments.PushNumber ( usModel ); // Get the new model
++            pObject->CallEvent ( "onElementModelChange", Arguments, false );
+             break;
+         }
+         default: return false;
